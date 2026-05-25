@@ -1,0 +1,7 @@
+question,variant,answer_metric,value,notes
+projection reduces GridSDF error,no_projection,gap_error,see_sdf_resolution_study,pure grid row
+projection reduces GridSDF error,with_projection,gap_error,see_sdf_resolution_study,projection row
+SDF reduces expensive projections,no_sdf_projection_count,projection_count,10440,brute-force would project every triangle
+SDF reduces expensive projections,with_sdf_projection_count,projection_count,318,narrow-band sample projection
+chart choice affects UV field,fallback_radial,area_error,0.00061283,BFF adapter interface preserved
+mesh resolution affects area,coarse_to_medium,area_error,see_mesh_resolution_study,computed rows

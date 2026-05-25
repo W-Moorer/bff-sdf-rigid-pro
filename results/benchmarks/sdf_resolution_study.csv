@@ -1,0 +1,9 @@
+scene,method,sdf_resolution,gap_error,memory_mb
+sphere,grid_sdf,10,0.0125268,0.00762939
+sphere,grid_sdf_projection,10,0.000399525,0.00762939
+sphere,grid_sdf,14,0.00733365,0.0209351
+sphere,grid_sdf_projection,14,0.000399525,0.0209351
+sphere,grid_sdf,20,0.00537719,0.0610352
+sphere,grid_sdf_projection,20,0.000399525,0.0610352
+sphere,grid_sdf,32,0.00165945,0.25
+sphere,grid_sdf_projection,32,0.000399525,0.25

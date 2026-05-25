@@ -1,0 +1,5 @@
+{
+  "scene": "sphere_sphere",
+  "radius": 1,
+  "penetration_depth": 0.18
+}

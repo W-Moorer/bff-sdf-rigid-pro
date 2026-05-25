@@ -1,0 +1,4 @@
+scene,method,rings,segments,mesh_faces,area_error,runtime_ms
+sphere_plane,ours_sdf_projection,16,48,1488,0.00844793,1.3576
+sphere_plane,ours_sdf_projection,28,84,4620,0.00275517,4.0493
+sphere_plane,ours_sdf_projection,44,132,11484,0.000544653,9.8306

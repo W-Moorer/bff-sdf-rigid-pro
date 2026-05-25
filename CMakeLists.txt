@@ -19,6 +19,7 @@ find_package(Eigen3 CONFIG REQUIRED)
 add_library(bff_sdf_contact
     src/core/Mesh.cpp
     src/io/MeshIO.cpp
+    src/io/DebugExport.cpp
     src/sdf/AnalyticSDF.cpp
     src/sdf/MeshSDF.cpp
     src/sdf/GridSDF.cpp
@@ -31,6 +32,8 @@ add_library(bff_sdf_contact
     src/contact/MarchingTriangles.cpp
     src/contact/ContactIntegrator.cpp
     src/contact/ChartProjector.cpp
+    src/contact/ContactDetector.cpp
+    src/experiments/ProceduralMeshes.cpp
 )
 
 target_include_directories(bff_sdf_contact PUBLIC
@@ -43,6 +46,17 @@ if(MSVC)
     target_compile_definitions(bff_sdf_contact PRIVATE _CRT_SECURE_NO_WARNINGS)
 else()
     target_compile_options(bff_sdf_contact PRIVATE -Wall -Wextra -Wpedantic)
+endif()
+
+if(BFF_SDF_BUILD_EXPERIMENTS)
+    add_executable(run_sphere_plane src/experiments/run_sphere_plane.cpp)
+    target_link_libraries(run_sphere_plane PRIVATE bff_sdf_contact)
+
+    add_executable(run_sphere_sphere src/experiments/run_sphere_sphere.cpp)
+    target_link_libraries(run_sphere_sphere PRIVATE bff_sdf_contact)
+
+    add_executable(run_benchmarks src/experiments/run_benchmarks.cpp)
+    target_link_libraries(run_benchmarks PRIVATE bff_sdf_contact)
 endif()
 
 include(CTest)

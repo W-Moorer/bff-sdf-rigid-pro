@@ -1,0 +1,6 @@
+{
+  "scene": "sphere_plane",
+  "radius": 1,
+  "penetration_depth": 0.2,
+  "chart_method": "official-bff"
+}

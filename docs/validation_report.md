@@ -79,3 +79,70 @@ Current limitations:
 - MeshSDF currently uses deterministic brute-force closest triangle search. It is API-compatible with a future BVH acceleration layer but not yet asymptotically optimized.
 - GridSDF stores a dense cubic grid and is intended for controlled resolution studies, not production memory efficiency.
 - Atlas-HO is an explicit fallback path to Atlas-Linear; no high-order PN/MLS/subdivision evaluator is implemented yet.
+
+## M9-M12: Detector, Experiments, Ablations, Documentation
+
+Date: 2026-05-26
+
+Commands:
+
+```powershell
+cmake --build --preset windows-vcpkg-release
+ctest --preset windows-vcpkg-release
+build\Release\run_sphere_plane.exe
+build\Release\run_sphere_sphere.exe
+build\Release\run_benchmarks.exe
+powershell -ExecutionPolicy Bypass -File scripts\run_all_tests.ps1
+python scripts\run_rigid_benchmarks.py --config Release
+```
+
+Status:
+
+- Build: passed.
+- Tests: 9/9 passed.
+- Sphere-plane demo: passed.
+- Sphere-sphere demo: passed.
+- Benchmark CSV generation: passed.
+- One-command test script: passed.
+- One-command benchmark script: passed.
+
+Key generated outputs:
+
+- `results/sphere_plane/config.json`
+- `results/sphere_plane/metrics.csv`
+- `results/sphere_plane/timing.csv`
+- `results/sphere_plane/timing.json`
+- `results/sphere_plane/contact_samples.ply`
+- `results/sphere_plane/contact_samples.obj`
+- `results/sphere_plane/contact_contour.obj`
+- `results/sphere_plane/contact_contour_3d.obj`
+- `results/sphere_plane/contact_contour_uv.csv`
+- `results/sphere_plane/gap_field.csv`
+- `results/sphere_plane/uv_gap_field.csv`
+- `results/sphere_plane/atlas_debug.obj`
+- `results/sphere_plane/report.md`
+- `results/benchmarks/accuracy.csv`
+- `results/benchmarks/runtime.csv`
+- `results/benchmarks/sdf_resolution_study.csv`
+- `results/benchmarks/mesh_resolution_study.csv`
+- `results/benchmarks/ablation.csv`
+- `results/benchmarks/validation_report.md`
+
+Representative results:
+
+- Sphere-plane area error: 0.000460444 in the standalone demo.
+- Sphere-plane contact radius error: 0.0000872858 in the standalone demo.
+- Sphere-sphere area error: 0.000859866 in the standalone demo.
+- GridSDF resolution study shows projection-refined error below pure grid error for all reported resolutions.
+
+BFF status:
+
+- `run_sphere_plane.exe` used the official BFF command-line binary from `bff_official/binaries/windows-v1.6/`.
+- Official BFF core files were not modified.
+- Fallback radial/planar parameterization remains available and is explicitly reported when used.
+
+Current limitations:
+
+- Bunny and mechanical-part benchmarks use procedural fallback geometry because no tracked input assets are present.
+- Torus-plane is a procedural open patch fallback and is not presented as a disk-like BFF topology validation.
+- Atlas-HO and BVH acceleration remain TODOs.

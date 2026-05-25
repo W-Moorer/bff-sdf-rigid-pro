@@ -136,7 +136,13 @@ BFFAdapterResult BFFAdapter::runOfficialBff(const Patch& patch, const BFFAdapter
     if (options.flattenToDisk) cmd << " --flattenToDisk";
     if (options.normalizeUVs) cmd << " --normalizeUVs";
 
-    const int code = std::system(cmd.str().c_str());
+    std::string command = cmd.str();
+#ifdef _WIN32
+    // cmd.exe handles a quoted executable path more reliably when the whole
+    // command line is wrapped in an additional quote pair.
+    command = "\"" + command + "\"";
+#endif
+    const int code = std::system(command.c_str());
     if (code != 0 || !fs::exists(outPath)) {
         result.message = "BFF command failed with code " + std::to_string(code);
         fs::remove(inPath);
