@@ -133,7 +133,7 @@ Representative results:
 - Sphere-plane area error: 0.000460444 in the standalone demo.
 - Sphere-plane contact radius error: 0.0000872858 in the standalone demo.
 - Sphere-sphere area error: 0.000859866 in the standalone demo.
-- GridSDF resolution study shows projection-refined error below pure grid error for all reported resolutions.
+- GridSDF resolution study shows projection-refined error strongly below coarse pure-grid error, with a linear target-mesh projection error floor at high grid resolutions.
 
 BFF status:
 
@@ -211,3 +211,52 @@ Status:
 Representative result:
 
 - `mechanical_part_plane_real_involute_gear`: full mesh 1336 faces, repaired/remeshed contact patch 430 faces, `official-bff`, `remeshed=true`.
+
+## Follow-Up: CMAME-Scale Benchmark Expansion
+
+Date: 2026-05-26
+
+Commands:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File scripts\run_all_tests.ps1
+python scripts\run_rigid_benchmarks.py --config Release
+```
+
+Status:
+
+- Build: passed.
+- Tests: 10/10 passed.
+- One-command benchmark script: passed and now also generates paper SVG figures.
+- Benchmark scope: 14 unique main scenes, including 6 analytic/reference scenes, 5 real-mesh scenes, and 3 stress/seam scenes.
+- Baseline families represented: BVH exact target-mesh projection, pure GridSDF, MeshSDF/BVHSDF pullback, and planar fallback chart.
+- Ablations represented: no projection, no SDF projection-count proxy, BFF versus planar curved chart quality, SDF resolution, and mesh resolution.
+- Complex real-mesh rows use deterministic subdivided-surface references and no longer rely on default zero area-error placeholders.
+- Real asset stats are written to `results/benchmarks/asset_stats.csv`.
+- Chart quality metrics are written to `results/benchmarks/chart_quality.csv`.
+
+Representative results:
+
+- Sphere-plane medium BFF area error: 0.00061283.
+- Tilted sphere-plane BFF area error: 0.00126676.
+- Sphere-sphere equal BFF area error: 0.00140366.
+- Sphere-sphere BVH exact target-mesh projection baseline area error: 0.00585994.
+- Sphere-sphere MeshSDF/BVHSDF pullback baseline area error: 0.00585994.
+- Sphere-sphere pure GridSDF baseline area error: 0.0112312.
+- Curved chart ablation: `spherical_cap_135` official BFF has 0 flipped UV triangles and 0.674769 deg mean angle distortion; fallback planar has 6016 flipped UV triangles and 13.3387 deg mean angle distortion.
+- Real mesh rows: bunny-plane, bunny-sphere, bunny-tilted-plane, mechanical gear-plane, and mechanical gear-sphere.
+
+Generated figure artifacts:
+
+- `results/figures/pipeline.svg`
+- `results/figures/analytic_convergence.svg`
+- `results/figures/bff_vs_planar_quality.svg`
+- `results/figures/grid_sdf_refinement.svg`
+- `results/figures/real_asset_contact_visualization.svg`
+- `results/figures/runtime_breakdown.svg`
+
+Remaining paper risks:
+
+- The BVH baseline is deterministic and fair within this prototype, but not yet an industrial optimized contact library.
+- Real-mesh references are numerical subdivided-surface references, not analytic truth.
+- Seam-crossing counters are still interface-level; seam stress scenes exercise multi-chart evaluation but do not yet implement full cross-chart continuity repair.

@@ -7,3 +7,7 @@ sphere,grid_sdf,20,0.00537719,0.0610352
 sphere,grid_sdf_projection,20,0.000399525,0.0610352
 sphere,grid_sdf,32,0.00165945,0.25
 sphere,grid_sdf_projection,32,0.000399525,0.25
+sphere,grid_sdf,48,0.00065917,0.84375
+sphere,grid_sdf_projection,48,0.000399525,0.84375
+sphere,grid_sdf,64,8.60875e-05,2
+sphere,grid_sdf_projection,64,0.000399525,2

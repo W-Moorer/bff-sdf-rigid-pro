@@ -29,9 +29,9 @@ def main() -> int:
 
     for exe in benchmarks:
         subprocess.run([str(exe)], cwd=root, check=True)
+    subprocess.run([sys.executable, str(root / "scripts" / "generate_paper_figures.py")], cwd=root, check=True)
     return 0
 
 
 if __name__ == "__main__":
     sys.exit(main())
-

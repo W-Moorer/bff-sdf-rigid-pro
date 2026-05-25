@@ -20,12 +20,16 @@
 - ContactDetector pipeline.
 - Sphere-plane and sphere-sphere demos.
 - Benchmark, resolution study, mesh study, and ablation CSV generation.
-- BVH-accelerated exact triangle closest point inside `MeshSDF`.
+- BVH-accelerated exact triangle closest point inside `MeshSDF`, with separate BVH exact projection and MeshSDF/BVHSDF pullback benchmark rows.
 - Real bunny benchmark patch from `bff_official/input/bunny.obj`.
 - Tracked CC0 involute gear STL for mechanical-part benchmark.
 - MeshRepair module for duplicate/degenerate cleanup, vertex compaction, and connected-component winding consistency.
 - Mechanical gear contact-side disk extraction with repair and boundary-fan remeshing before BFF.
 - BFF-vs-planar same-scene ablation table.
+- Expanded benchmark scope: 14 unique main scenes, including 6 analytic/reference scenes, 5 real-mesh scenes, and 3 stress/seam scenes.
+- Complex real-mesh rows now report deterministic subdivided-surface reference areas instead of default zero-error placeholders.
+- Chart-quality CSV for official BFF versus planar fallback on curved patches, including flipped UV triangle counts, angle distortion, area distortion, and Jacobian conditioning.
+- Paper figure generation script producing pipeline, convergence, chart-quality, GridSDF refinement, real-asset, and runtime SVG artifacts.
 - Documentation: theory, implementation plan, validation report, experiments, paper outline.
 
 ## BFF Status
@@ -59,5 +63,6 @@ python scripts/run_rigid_benchmarks.py --config Release
 - Replace boundary-fan remeshing with a higher-quality constrained planar triangulation for STL-derived mechanical patch charts.
 - Implement seam-crossing continuity checks for multi-chart atlases.
 - Add Atlas-HO projection through PN triangles, MLS, or subdivision surfaces.
-- Add richer visualization scripts for paper figures.
+- Replace the current SVG-only figure generator with publication-style plotting if a manuscript production stack is selected.
+- Add more independent real CAD assets beyond bunny and the tracked CC0 gear.
 - Expand BFF integration tests to parse official UVs on more patch topologies.

@@ -1,9 +1,11 @@
 question,variant,answer_metric,value,notes
-projection reduces GridSDF error,no_projection,gap_error,see_sdf_resolution_study,pure grid row
-projection reduces GridSDF error,with_projection,gap_error,see_sdf_resolution_study,projection row
-SDF reduces expensive projections,no_sdf_projection_count,projection_count,10440,brute-force would project every triangle
-SDF reduces expensive projections,with_sdf_projection_count,projection_count,318,narrow-band sample projection
-BFF chart vs fallback planar,official_bff,area_error,0.00061283,see_bff_vs_planar_ablation
-BFF chart vs fallback planar,fallback_planar,area_error,0.00061283,see_bff_vs_planar_ablation
-BVH baseline,bvh_exact_triangle_closest_point,area_error,0.00585994,sphere_sphere closed target mesh baseline
-mesh resolution affects area,coarse_to_medium,area_error,see_mesh_resolution_study,computed rows
+projection reduces low-resolution GridSDF error,no_projection,gap_error,see_sdf_resolution_study,pure grid row
+projection reduces low-resolution GridSDF error,with_projection,gap_error,see_sdf_resolution_study,projection row; high-resolution grid can beat the linear target-mesh projection floor
+SDF reduces expensive projections,no_sdf_projection_count,projection_count,10440,brute-force would project every source triangle
+SDF reduces expensive projections,with_sdf_projection_count,projection_count,318,narrow-band projection samples
+BFF chart vs fallback planar,official_bff,quality_metrics,see_bff_vs_planar_ablation,curved patch chart quality rows
+BFF chart vs fallback planar,fallback_planar,quality_metrics,see_bff_vs_planar_ablation,curved patch chart quality rows
+BVH exact baseline,meshsdf_bvh_exact_triangle_closest_point,area_error,0.00585994,sphere_sphere closed target mesh baseline with target-mesh projection
+MeshSDF/BVHSDF baseline,meshsdf_bvhsdf_pullback_only,area_error,0.00585994,sphere_sphere BVH SDF pullback without projection
+GridSDF baseline,grid_sdf_pullback_only,area_error,0.0112312,sphere_sphere pure grid baseline
+mesh resolution affects area,coarse_to_fine,area_error,see_mesh_resolution_study,computed rows

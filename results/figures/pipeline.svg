@@ -1,0 +1,39 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1050" height="270" viewBox="0 0 1050 270">
+<rect width="100%" height="100%" fill="#ffffff"/>
+<style>text{font-family:Arial,Helvetica,sans-serif;fill:#202124}.title{font-size:18px;font-weight:700}.label{font-size:11px}.small{font-size:10px}.axis{stroke:#4b5563;stroke-width:1}.grid{stroke:#e5e7eb;stroke-width:1}.bff{fill:#2563eb}.base{fill:#dc6429}.accent{fill:#0f766e}.muted{fill:#6b7280}</style>
+<text class="title" x="40" y="34">BFF-SDF Contact Atlas pipeline</text>
+<rect class="accent" x="40" y="92" width="126" height="68" rx="6" opacity="0.92"/>
+<text class="label" x="103.0" y="120" text-anchor="middle" fill="#fff">disk-like patches</text>
+<text class="label" x="103.0" y="138" text-anchor="middle" fill="#fff"></text>
+<line x1="169" y1="126.0" x2="181" y2="126.0" stroke="#374151" stroke-width="2"/>
+<polygon points="181,121.0 187,126.0 181,131.0" fill="#374151"/>
+<rect class="bff" x="184" y="92" width="126" height="68" rx="6" opacity="0.92"/>
+<text class="label" x="247.0" y="120" text-anchor="middle" fill="#fff">official BFF</text>
+<text class="label" x="247.0" y="138" text-anchor="middle" fill="#fff">charts</text>
+<line x1="313" y1="126.0" x2="325" y2="126.0" stroke="#374151" stroke-width="2"/>
+<polygon points="325,121.0 331,126.0 325,131.0" fill="#374151"/>
+<rect class="accent" x="328" y="92" width="126" height="68" rx="6" opacity="0.92"/>
+<text class="label" x="391.0" y="120" text-anchor="middle" fill="#fff">2D UV</text>
+<text class="label" x="391.0" y="138" text-anchor="middle" fill="#fff">acceleration</text>
+<line x1="457" y1="126.0" x2="469" y2="126.0" stroke="#374151" stroke-width="2"/>
+<polygon points="469,121.0 475,126.0 469,131.0" fill="#374151"/>
+<rect class="bff" x="472" y="92" width="126" height="68" rx="6" opacity="0.92"/>
+<text class="label" x="535.0" y="120" text-anchor="middle" fill="#fff">pulled-back SDF</text>
+<text class="label" x="535.0" y="138" text-anchor="middle" fill="#fff">g(u)</text>
+<line x1="601" y1="126.0" x2="613" y2="126.0" stroke="#374151" stroke-width="2"/>
+<polygon points="613,121.0 619,126.0 613,131.0" fill="#374151"/>
+<rect class="accent" x="616" y="92" width="126" height="68" rx="6" opacity="0.92"/>
+<text class="label" x="679.0" y="120" text-anchor="middle" fill="#fff">marching triangles</text>
+<text class="label" x="679.0" y="138" text-anchor="middle" fill="#fff"></text>
+<line x1="745" y1="126.0" x2="757" y2="126.0" stroke="#374151" stroke-width="2"/>
+<polygon points="757,121.0 763,126.0 757,131.0" fill="#374151"/>
+<rect class="bff" x="760" y="92" width="126" height="68" rx="6" opacity="0.92"/>
+<text class="label" x="823.0" y="120" text-anchor="middle" fill="#fff">chart projection</text>
+<text class="label" x="823.0" y="138" text-anchor="middle" fill="#fff"></text>
+<line x1="889" y1="126.0" x2="901" y2="126.0" stroke="#374151" stroke-width="2"/>
+<polygon points="901,121.0 907,126.0 901,131.0" fill="#374151"/>
+<rect class="accent" x="904" y="92" width="126" height="68" rx="6" opacity="0.92"/>
+<text class="label" x="967.0" y="120" text-anchor="middle" fill="#fff">CSV/OBJ/report</text>
+<text class="label" x="967.0" y="138" text-anchor="middle" fill="#fff"></text>
+<text class="label" x="40" y="220">BFF is preprocessing-only; runtime updates rigid poses and evaluates the fixed chart field.</text>
+</svg>

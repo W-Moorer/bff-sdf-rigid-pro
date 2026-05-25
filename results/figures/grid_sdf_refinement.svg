@@ -1,0 +1,33 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="820" height="480" viewBox="0 0 820 480">
+<rect width="100%" height="100%" fill="#ffffff"/>
+<style>text{font-family:Arial,Helvetica,sans-serif;fill:#202124}.title{font-size:18px;font-weight:700}.label{font-size:11px}.small{font-size:10px}.axis{stroke:#4b5563;stroke-width:1}.grid{stroke:#e5e7eb;stroke-width:1}.bff{fill:#2563eb}.base{fill:#dc6429}.accent{fill:#0f766e}.muted{fill:#6b7280}</style>
+<text class="title" x="86" y="30">GridSDF error and projection refinement floor</text>
+<line class="grid" x1="86" y1="56.0" x2="675" y2="56.0"/>
+<line class="grid" x1="86" y1="126.8" x2="675" y2="126.8"/>
+<line class="grid" x1="86" y1="197.6" x2="675" y2="197.6"/>
+<line class="grid" x1="86" y1="268.4" x2="675" y2="268.4"/>
+<line class="grid" x1="86" y1="339.2" x2="675" y2="339.2"/>
+<line class="grid" x1="86" y1="410.0" x2="675" y2="410.0"/>
+<line class="axis" x1="86" y1="56" x2="86" y2="410"/>
+<line class="axis" x1="86" y1="410" x2="675" y2="410"/>
+<polyline fill="none" stroke="#2563eb" stroke-width="2.5" points="86.0,71.2 129.6,107.6 195.1,128.7 326.0,208.7 500.5,271.5 675.0,410.0"/>
+<circle cx="86.0" cy="71.2" r="3.5" fill="#2563eb"/>
+<circle cx="129.6" cy="107.6" r="3.5" fill="#2563eb"/>
+<circle cx="195.1" cy="128.7" r="3.5" fill="#2563eb"/>
+<circle cx="326.0" cy="208.7" r="3.5" fill="#2563eb"/>
+<circle cx="500.5" cy="271.5" r="3.5" fill="#2563eb"/>
+<circle cx="675.0" cy="410.0" r="3.5" fill="#2563eb"/>
+<rect x="697" y="56" width="12" height="12" fill="#2563eb"/>
+<text class="label" x="715" y="67">grid_sdf</text>
+<polyline fill="none" stroke="#dc6429" stroke-width="2.5" points="86.0,305.6 129.6,305.6 195.1,305.6 326.0,305.6 500.5,305.6 675.0,305.6"/>
+<circle cx="86.0" cy="305.6" r="3.5" fill="#dc6429"/>
+<circle cx="129.6" cy="305.6" r="3.5" fill="#dc6429"/>
+<circle cx="195.1" cy="305.6" r="3.5" fill="#dc6429"/>
+<circle cx="326.0" cy="305.6" r="3.5" fill="#dc6429"/>
+<circle cx="500.5" cy="305.6" r="3.5" fill="#dc6429"/>
+<circle cx="675.0" cy="305.6" r="3.5" fill="#dc6429"/>
+<rect x="697" y="78" width="12" height="12" fill="#dc6429"/>
+<text class="label" x="715" y="89">grid_sdf_projection</text>
+<text class="label" x="380.5" y="456" text-anchor="middle">resolution / mesh resolution</text>
+<text class="label" transform="translate(24,233.0) rotate(-90)" text-anchor="middle">gap error log scale</text>
+</svg>
