@@ -23,8 +23,13 @@ std::string findBffExecutable(const BFFAdapterOptions& options)
 {
     if (!options.executablePath.empty()) return options.executablePath;
     if (const char* env = std::getenv("BFF_COMMAND")) return std::string(env);
-    const fs::path local = fs::current_path() / "bff_official" / "binaries" / "windows-v1.6" / "bff-command-line.exe";
-    if (fs::exists(local)) return local.string();
+    fs::path cursor = fs::current_path();
+    for (int depth = 0; depth < 6; ++depth) {
+        const fs::path local = cursor / "bff_official" / "binaries" / "windows-v1.6" / "bff-command-line.exe";
+        if (fs::exists(local)) return local.string();
+        if (!cursor.has_parent_path() || cursor == cursor.parent_path()) break;
+        cursor = cursor.parent_path();
+    }
     return {};
 }
 
@@ -198,4 +203,3 @@ BFFAdapterResult BFFAdapter::fallbackPlanar(const Patch& patch, const std::strin
 }
 
 } // namespace bff_sdf::atlas
-

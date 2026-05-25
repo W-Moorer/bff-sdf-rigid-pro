@@ -20,11 +20,17 @@ add_library(bff_sdf_contact
     src/core/Mesh.cpp
     src/io/MeshIO.cpp
     src/sdf/AnalyticSDF.cpp
+    src/sdf/MeshSDF.cpp
+    src/sdf/GridSDF.cpp
     src/atlas/PatchBuilder.cpp
     src/atlas/UVAcceleration.cpp
     src/atlas/BFFAdapter.cpp
     src/atlas/ContactAtlas.cpp
     src/atlas/ChartEvaluator.cpp
+    src/contact/ContactGapField.cpp
+    src/contact/MarchingTriangles.cpp
+    src/contact/ContactIntegrator.cpp
+    src/contact/ChartProjector.cpp
 )
 
 target_include_directories(bff_sdf_contact PUBLIC
@@ -54,4 +60,8 @@ if(BFF_SDF_BUILD_TESTS)
     add_contact_test(test_sdf tests/test_sdf.cpp)
     add_contact_test(test_bff_adapter tests/test_bff_adapter.cpp)
     add_contact_test(test_chart_evaluator tests/test_chart_evaluator.cpp)
+    add_contact_test(test_gap_field tests/test_gap_field.cpp)
+    add_contact_test(test_marching_triangles tests/test_marching_triangles.cpp)
+    add_contact_test(test_contact_area tests/test_contact_area.cpp)
+    add_contact_test(test_projection tests/test_projection.cpp)
 endif()

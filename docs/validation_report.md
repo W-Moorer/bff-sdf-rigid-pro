@@ -42,3 +42,40 @@ Current limitations:
 - The M0-M3 unit test intentionally disables official BFF execution to keep the test deterministic and independent of the local binary. Official command-line BFF integration is implemented in `BFFAdapter` but will be exercised in later integration/benchmark runs.
 - High-order projection is not implemented yet.
 - MeshSDF, GridSDF, contact integration, projection refinement, detector, and benchmark outputs are scheduled for M4-M12.
+
+## M4-M8: Gap Field, Marching Triangles, Contact Area, Mesh/Grid SDF, Projection
+
+Date: 2026-05-26
+
+Commands:
+
+```powershell
+cmake --build --preset windows-vcpkg-release
+ctest --preset windows-vcpkg-release
+```
+
+Status:
+
+- Build: passed.
+- Tests: 9/9 passed.
+- New passing tests:
+  - `test_gap_field`
+  - `test_marching_triangles`
+  - `test_contact_area`
+  - `test_projection`
+
+Validated behavior:
+
+- Pulled-back gap field computes `g = Phi_B(R_B^T(x_A - t_B))`.
+- `gradU = J_A^T nWorld` matches finite differences on a tilted chart.
+- Marching triangles handles all-positive, all-negative, one-negative, two-negative, and exact-zero vertex cases without duplicate zero points.
+- Sphere-plane cap integration meets analytic thresholds: contact area error below 3% and contour radius error below 2%.
+- MeshSDF brute-force closest triangle and closed-mesh sign checks pass for procedural cube/sphere cases.
+- GridSDF trilinear interpolation shows lower aggregate error at higher resolution and returns normalized gradients near the surface.
+- Atlas-Linear projection agrees with exact triangle closest point and reduces low-resolution GridSDF gap error in the sphere test.
+
+Current limitations:
+
+- MeshSDF currently uses deterministic brute-force closest triangle search. It is API-compatible with a future BVH acceleration layer but not yet asymptotically optimized.
+- GridSDF stores a dense cubic grid and is intended for controlled resolution studies, not production memory efficiency.
+- Atlas-HO is an explicit fallback path to Atlas-Linear; no high-order PN/MLS/subdivision evaluator is implemented yet.
