@@ -57,7 +57,7 @@ ctest --preset windows-vcpkg-release
 Status:
 
 - Build: passed.
-- Tests: 9/9 passed.
+- Tests: 10/10 passed.
 - New passing tests:
   - `test_gap_field`
   - `test_marching_triangles`
@@ -70,13 +70,13 @@ Validated behavior:
 - `gradU = J_A^T nWorld` matches finite differences on a tilted chart.
 - Marching triangles handles all-positive, all-negative, one-negative, two-negative, and exact-zero vertex cases without duplicate zero points.
 - Sphere-plane cap integration meets analytic thresholds: contact area error below 3% and contour radius error below 2%.
-- MeshSDF brute-force closest triangle and closed-mesh sign checks pass for procedural cube/sphere cases.
+- MeshSDF closest triangle and closed-mesh sign checks pass for procedural cube/sphere cases.
 - GridSDF trilinear interpolation shows lower aggregate error at higher resolution and returns normalized gradients near the surface.
 - Atlas-Linear projection agrees with exact triangle closest point and reduces low-resolution GridSDF gap error in the sphere test.
 
 Current limitations:
 
-- MeshSDF currently uses deterministic brute-force closest triangle search. It is API-compatible with a future BVH acceleration layer but not yet asymptotically optimized.
+- MeshSDF now uses a deterministic in-memory AABB BVH. It is still not benchmarked against an optimized industrial BVH library.
 - GridSDF stores a dense cubic grid and is intended for controlled resolution studies, not production memory efficiency.
 - Atlas-HO is an explicit fallback path to Atlas-Linear; no high-order PN/MLS/subdivision evaluator is implemented yet.
 
@@ -99,7 +99,7 @@ python scripts\run_rigid_benchmarks.py --config Release
 Status:
 
 - Build: passed.
-- Tests: 9/9 passed.
+- Tests: 10/10 passed.
 - Sphere-plane demo: passed.
 - Sphere-sphere demo: passed.
 - Benchmark CSV generation: passed.
@@ -164,7 +164,7 @@ python scripts\run_rigid_benchmarks.py --config Release
 Status:
 
 - Build: passed.
-- Tests: 9/9 passed.
+- Tests: 10/10 passed.
 - One-command test script: passed.
 - One-command benchmark script: passed.
 - BVH-accelerated MeshSDF closest-triangle query: implemented and checked against brute-force exact closest distance in `test_sdf`.
@@ -173,9 +173,9 @@ Status:
   - sphere-plane disk patch: `official-bff`
   - sphere-sphere source disk patch: `official-bff`
   - ellipsoid-plane disk patch: `official-bff`
-  - bunny real bottom patch: `official-bff`
+  - bunny real contact-side disk patch: `official-bff`
   - torus patch: `fallback-planar` because the patch is not disk-like
-  - mechanical gear patch: `fallback-planar` because official BFF UV validation does not pass on the STL-derived patch
+  - mechanical gear patch: `official-bff` after STL repair and boundary-fan remeshing
 - New output: `results/benchmarks/bff_vs_planar_ablation.csv`.
 - New tracked real mechanical asset: `data/meshes/involute_gear_teeth_16_angle_20_cc0.stl`.
 
@@ -185,4 +185,29 @@ Representative results:
 - Sphere-sphere analytic area error: 0.00140366.
 - Sphere-sphere BVH exact-triangle baseline area error: 0.00585994.
 - Bunny real patch: full mesh 28576 faces, extracted contact patch 3529 faces, official BFF chart succeeded.
-- Mechanical gear: full mesh 1336 faces, extracted contact patch 448 faces, planar fallback recorded.
+- Mechanical gear: full mesh 1336 faces, extracted/remeshed contact patch 430 faces, official BFF chart succeeded with `remeshed=true`.
+
+## Follow-Up: Mechanical STL Repair and Contact Patch Extraction
+
+Date: 2026-05-26
+
+Commands:
+
+```powershell
+cmake --build --preset windows-vcpkg-release
+ctest --preset windows-vcpkg-release
+build\Release\run_benchmarks.exe
+```
+
+Status:
+
+- Build: passed.
+- Tests: 10/10 passed.
+- Added `MeshRepair` with duplicate/degenerate cleanup, vertex compaction, connected-component winding consistency, and outward orientation for closed meshes.
+- Added `test_mesh_repair`.
+- Mechanical gear extraction now repairs the STL mesh first, then searches contact-side planar components and local disk candidates. Candidate selection prefers the largest patch whose official BFF UV validation succeeds.
+- If an STL-derived candidate is disk-like but fails BFF UV checks, the benchmark can remesh it as a boundary fan and rerun BFF.
+
+Representative result:
+
+- `mechanical_part_plane_real_involute_gear`: full mesh 1336 faces, repaired/remeshed contact patch 430 faces, `official-bff`, `remeshed=true`.

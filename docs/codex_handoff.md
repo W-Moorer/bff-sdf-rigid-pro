@@ -23,6 +23,8 @@
 - BVH-accelerated exact triangle closest point inside `MeshSDF`.
 - Real bunny benchmark patch from `bff_official/input/bunny.obj`.
 - Tracked CC0 involute gear STL for mechanical-part benchmark.
+- MeshRepair module for duplicate/degenerate cleanup, vertex compaction, and connected-component winding consistency.
+- Mechanical gear contact-side disk extraction with repair and boundary-fan remeshing before BFF.
 - BFF-vs-planar same-scene ablation table.
 - Documentation: theory, implementation plan, validation report, experiments, paper outline.
 
@@ -38,7 +40,7 @@ If the official binary is absent in another checkout, `BFFAdapter` falls back to
 - MeshSDF uses a deterministic in-memory AABB BVH, but it has not been benchmarked against industrial BVH libraries.
 - Vertex-face/edge-edge discrete contact is represented by closest-triangle mesh projection, not a full pair-contact solver.
 - Torus is non-disk-like and uses planar fallback in the benchmark.
-- Mechanical gear is a real tracked CC0 STL asset, but the extracted STL patch currently falls back to planar because official BFF UV validation does not pass.
+- Mechanical gear requires repair plus boundary-fan remeshing before official BFF passes; this is recorded as `remeshed=true` in benchmark output.
 - Seam-crossing logic is counted in the interface but not fully implemented.
 - No deformable dynamics, friction, self-contact, IPC, NCP/LCP, or FEM coupling.
 
@@ -54,7 +56,7 @@ python scripts/run_rigid_benchmarks.py --config Release
 
 ## TODO
 
-- Improve official BFF robustness for STL-derived mechanical patch charts.
+- Replace boundary-fan remeshing with a higher-quality constrained planar triangulation for STL-derived mechanical patch charts.
 - Implement seam-crossing continuity checks for multi-chart atlases.
 - Add Atlas-HO projection through PN triangles, MLS, or subdivision surfaces.
 - Add richer visualization scripts for paper figures.

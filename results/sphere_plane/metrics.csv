@@ -1,2 +1,2 @@
 scene,method,mesh_faces,sdf_resolution,contact_area,area_error,max_penetration,penetration_error,normal_error_deg,contour_hausdorff,runtime_ms,sdf_queries,projection_count,projection_failures,memory_mb
-sphere_plane,ours_sdf_projection,15984,0,1.25606,0.000460444,0.199738,0.00131125,0,8.72858e-05,13.748,56852,677,0,0
+sphere_plane,ours_sdf_projection,15984,0,1.25606,0.000460444,0.199738,0.00131125,0,8.72858e-05,14.5027,56852,677,0,0

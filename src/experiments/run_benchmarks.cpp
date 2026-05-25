@@ -3,6 +3,7 @@
 #include "atlas/PatchBuilder.h"
 #include "contact/ChartProjector.h"
 #include "contact/ContactDetector.h"
+#include "core/MeshRepair.h"
 #include "experiments/ProceduralMeshes.h"
 #include "io/DebugExport.h"
 #include "io/MeshIO.h"
@@ -124,19 +125,146 @@ std::vector<std::vector<int>> selectedFaceComponents(const core::Mesh& mesh, con
     return components;
 }
 
-bool findBottomDiskPatch(const core::Mesh& mesh, atlas::Patch& outPatch)
+Eigen::Vector3d faceCentroid(const core::Mesh& mesh, int faceId)
+{
+    const Eigen::Vector3i f = mesh.F.row(faceId);
+    return (mesh.V.row(f[0]) + mesh.V.row(f[1]) + mesh.V.row(f[2])) / 3.0;
+}
+
+atlas::Patch remeshPatchBoundaryFan(const atlas::Patch& patch)
+{
+    if (patch.boundaryLoop.size() < 3) return patch;
+
+    core::Mesh remeshed;
+    remeshed.V.resize(static_cast<int>(patch.boundaryLoop.size()) + 1, 3);
+    Eigen::Vector3d center = Eigen::Vector3d::Zero();
+    for (int vid : patch.boundaryLoop) center += patch.localMesh.V.row(vid).transpose();
+    center /= static_cast<double>(patch.boundaryLoop.size());
+    remeshed.V.row(0) = center.transpose();
+    for (int i = 0; i < static_cast<int>(patch.boundaryLoop.size()); ++i) {
+        remeshed.V.row(i + 1) = patch.localMesh.V.row(patch.boundaryLoop[i]);
+    }
+
+    remeshed.F.resize(static_cast<int>(patch.boundaryLoop.size()), 3);
+    for (int i = 0; i < static_cast<int>(patch.boundaryLoop.size()); ++i) {
+        const int j = (i + 1) % static_cast<int>(patch.boundaryLoop.size());
+        remeshed.F.row(i) = Eigen::Vector3i(0, i + 1, j + 1);
+    }
+    remeshed.computeNormals();
+
+    Eigen::Vector3d originalNormal = Eigen::Vector3d::Zero();
+    for (int i = 0; i < patch.localMesh.FN.rows(); ++i) originalNormal += patch.localMesh.FN.row(i).transpose();
+    Eigen::Vector3d remeshNormal = Eigen::Vector3d::Zero();
+    for (int i = 0; i < remeshed.FN.rows(); ++i) remeshNormal += remeshed.FN.row(i).transpose();
+    if (originalNormal.norm() > 1e-12 && remeshNormal.norm() > 1e-12 &&
+        originalNormal.dot(remeshNormal) < 0.0) {
+        for (int i = 0; i < remeshed.F.rows(); ++i) std::swap(remeshed.F(i, 1), remeshed.F(i, 2));
+        remeshed.computeNormals();
+    }
+
+    return atlas::PatchBuilder::buildWholeMeshPatch(remeshed);
+}
+
+bool officialBffPasses(const atlas::Patch& patch)
+{
+    atlas::BFFAdapter adapter;
+    atlas::BFFAdapterOptions options;
+    options.preferOfficialBff = true;
+    const auto result = adapter.parameterize(patch, options);
+    return result.success && result.usedOfficialBff;
+}
+
+bool considerPatchCandidate(const atlas::Patch& candidate,
+                            ChartMode chartMode,
+                            atlas::Patch& bestPatch,
+                            bool& bestRemeshed,
+                            int& bestScore,
+                            bool& bestBffPass)
+{
+    if (!candidate.diskLike) return false;
+
+    const int score = candidate.localMesh.F.rows();
+    if (chartMode != ChartMode::OfficialBff) {
+        if (score > bestScore) {
+            bestPatch = candidate;
+            bestRemeshed = false;
+            bestScore = score;
+            bestBffPass = false;
+        }
+        return true;
+    }
+
+    const bool bffPass = officialBffPasses(candidate);
+    if (bffPass && (!bestBffPass || score > bestScore)) {
+        bestPatch = candidate;
+        bestRemeshed = false;
+        bestScore = score;
+        bestBffPass = true;
+        return true;
+    }
+
+    const auto remeshed = remeshPatchBoundaryFan(candidate);
+    const bool remeshBffPass = remeshed.diskLike && officialBffPasses(remeshed);
+    if (remeshBffPass && (!bestBffPass || remeshed.localMesh.F.rows() > bestScore)) {
+        bestPatch = remeshed;
+        bestRemeshed = true;
+        bestScore = remeshed.localMesh.F.rows();
+        bestBffPass = true;
+        return true;
+    }
+
+    if (!bestBffPass && score > bestScore) {
+        bestPatch = candidate;
+        bestRemeshed = false;
+        bestScore = score;
+    }
+    return true;
+}
+
+bool findContactDiskPatch(const core::Mesh& mesh,
+                          ChartMode chartMode,
+                          atlas::Patch& outPatch,
+                          bool& usedRemesh,
+                          std::string& note)
 {
     const auto box = mesh.bounds();
-    const double zMin = box.min.z();
+    const Eigen::Vector3d contactNormal = Eigen::Vector3d::UnitZ();
+    const Eigen::Vector3d contactSideNormal = -contactNormal;
+    const double minPlane = box.min.z();
     const double zRange = std::max(1e-12, box.extent().z());
     const double xyExtent = std::max(box.extent().x(), box.extent().y());
+
+    atlas::Patch best;
+    int bestScore = -1;
+    bool bestBffPass = false;
+    bool bestRemesh = false;
+    int planarCandidates = 0;
+
+    for (double normalTol : {0.98, 0.95, 0.90, 0.80}) {
+        for (double planeFrac : {1e-5, 1e-4, 1e-3, 0.005, 0.01, 0.02}) {
+            std::vector<int> selected;
+            const double planeTol = std::max(1e-8, planeFrac * zRange);
+            for (int fi = 0; fi < mesh.F.rows(); ++fi) {
+                const Eigen::Vector3d n = mesh.FN.row(fi).transpose();
+                const Eigen::Vector3d c = faceCentroid(mesh, fi);
+                if (n.dot(contactSideNormal) >= normalTol && c.z() <= minPlane + planeTol) {
+                    selected.push_back(fi);
+                }
+            }
+            planarCandidates += static_cast<int>(selected.size());
+            for (const auto& component : selectedFaceComponents(mesh, selected)) {
+                if (component.size() < 3) continue;
+                auto patch = atlas::PatchBuilder::buildFromFaces(mesh, component);
+                considerPatchCandidate(patch, chartMode, best, bestRemesh, bestScore, bestBffPass);
+            }
+        }
+    }
 
     int seedFace = 0;
     double seedZ = std::numeric_limits<double>::infinity();
     Eigen::Vector3d seedCentroid = Eigen::Vector3d::Zero();
     for (int fi = 0; fi < mesh.F.rows(); ++fi) {
-        const Eigen::Vector3i f = mesh.F.row(fi);
-        const Eigen::Vector3d c = (mesh.V.row(f[0]) + mesh.V.row(f[1]) + mesh.V.row(f[2])) / 3.0;
+        const Eigen::Vector3d c = faceCentroid(mesh, fi);
         if (c.z() < seedZ) {
             seedZ = c.z();
             seedFace = fi;
@@ -144,16 +272,13 @@ bool findBottomDiskPatch(const core::Mesh& mesh, atlas::Patch& outPatch)
         }
     }
 
-    atlas::Patch best;
-    int bestFaces = 0;
     for (double zFrac : {0.03, 0.05, 0.08, 0.12, 0.18, 0.25, 0.35}) {
         for (double radiusFrac : {0.12, 0.18, 0.25, 0.35, 0.5, 0.75, 1.0}) {
             std::vector<int> selected;
-            const double zLimit = zMin + zFrac * zRange;
+            const double zLimit = minPlane + zFrac * zRange;
             const double radius = radiusFrac * xyExtent;
             for (int fi = 0; fi < mesh.F.rows(); ++fi) {
-                const Eigen::Vector3i f = mesh.F.row(fi);
-                const Eigen::Vector3d c = (mesh.V.row(f[0]) + mesh.V.row(f[1]) + mesh.V.row(f[2])) / 3.0;
+                const Eigen::Vector3d c = faceCentroid(mesh, fi);
                 if (c.z() <= zLimit && (c.head<2>() - seedCentroid.head<2>()).norm() <= radius) {
                     selected.push_back(fi);
                 }
@@ -163,21 +288,24 @@ bool findBottomDiskPatch(const core::Mesh& mesh, atlas::Patch& outPatch)
             for (const auto& component : selectedFaceComponents(mesh, selected)) {
                 if (component.size() < 20) continue;
                 auto patch = atlas::PatchBuilder::buildFromFaces(mesh, component);
-                if (patch.diskLike && static_cast<int>(component.size()) > bestFaces) {
-                    best = patch;
-                    bestFaces = static_cast<int>(component.size());
-                }
+                considerPatchCandidate(patch, chartMode, best, bestRemesh, bestScore, bestBffPass);
             }
         }
     }
 
-    if (bestFaces > 0) {
+    if (bestScore > 0) {
         outPatch = best;
+        usedRemesh = bestRemesh;
+        note = "plane-normal plus local disk search; bff_pass=" + std::string(bestBffPass ? "true" : "false") +
+               "; remeshed=" + std::string(bestRemesh ? "true" : "false") +
+               "; planar_candidate_face_evaluations=" + std::to_string(planarCandidates);
         return true;
     }
 
     std::vector<int> oneFace = {seedFace};
     outPatch = atlas::PatchBuilder::buildFromFaces(mesh, oneFace);
+    usedRemesh = false;
+    note = "single-face fallback";
     return outPatch.diskLike;
 }
 
@@ -302,9 +430,13 @@ bool realAssetPlaneRow(const std::string& scene,
                        std::string& note)
 {
     fullMesh = normalizeMesh(fullMesh, 1.4);
+    core::MeshRepairReport repairReport;
+    fullMesh = core::repairMesh(fullMesh, {}, &repairReport);
     atlas::Patch patch;
-    if (!findBottomDiskPatch(fullMesh, patch)) {
-        note = scene + ": no disk-like bottom patch found";
+    bool usedRemesh = false;
+    std::string patchNote;
+    if (!findContactDiskPatch(fullMesh, chartMode, patch, usedRemesh, patchNote)) {
+        note = scene + ": no disk-like contact patch found";
         return false;
     }
     const auto chart = buildChartFromPatch(patch, chartMode);
@@ -312,7 +444,11 @@ bool realAssetPlaneRow(const std::string& scene,
     row = makeRow(scene, "ours_sdf_projection_" + chartSuffix(chart), patch.localMesh, result, delta);
     note = scene + ": full_faces=" + std::to_string(fullMesh.F.rows()) +
            ", patch_faces=" + std::to_string(patch.localMesh.F.rows()) +
-           ", chart=" + chart.parameterizationMethod;
+           ", chart=" + chart.parameterizationMethod +
+           ", remeshed=" + std::string(usedRemesh ? "true" : "false") +
+           ", repair_removed_degenerate=" + std::to_string(repairReport.removedDegenerateFaces) +
+           ", repair_flipped_faces=" + std::to_string(repairReport.flippedFaces) +
+           ", patch_selection=" + patchNote;
     return true;
 }
 

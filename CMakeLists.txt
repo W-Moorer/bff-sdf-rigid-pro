@@ -18,6 +18,7 @@ find_package(Eigen3 CONFIG REQUIRED)
 
 add_library(bff_sdf_contact
     src/core/Mesh.cpp
+    src/core/MeshRepair.cpp
     src/io/MeshIO.cpp
     src/io/DebugExport.cpp
     src/sdf/AnalyticSDF.cpp
@@ -70,6 +71,7 @@ endfunction()
 
 if(BFF_SDF_BUILD_TESTS)
     add_contact_test(test_mesh tests/test_mesh.cpp)
+    add_contact_test(test_mesh_repair tests/test_mesh_repair.cpp)
     add_contact_test(test_pose tests/test_pose.cpp)
     add_contact_test(test_sdf tests/test_sdf.cpp)
     add_contact_test(test_bff_adapter tests/test_bff_adapter.cpp)

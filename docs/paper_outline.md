@@ -45,8 +45,8 @@ Rigid contact detection is often expressed as discrete mesh proximity. This prot
 - Sphere-sphere analytic circle validation.
 - Ellipsoid-plane procedural geometry.
 - Torus-plane procedural open patch fallback.
-- Bunny-plane procedural fallback because no tracked model asset is available.
-- Mechanical part-plane procedural plate fallback.
+- Bunny-plane real BFF input asset with extracted disk-like contact patch.
+- Mechanical part-plane tracked CC0 gear asset with repaired/remeshed contact patch.
 - GridSDF resolution study.
 - Mesh resolution study.
 - Ablations: no projection, no SDF, fallback chart, SDF resolution, mesh resolution.
@@ -54,8 +54,8 @@ Rigid contact detection is often expressed as discrete mesh proximity. This prot
 ## Limitations
 
 - Atlas-HO is an interface placeholder; high-order surface projection is not implemented.
-- MeshSDF currently uses brute-force closest triangle search rather than a BVH.
-- Procedural fallbacks replace bunny and mechanical assets until tracked meshes are added.
+- MeshSDF uses a simple in-memory AABB BVH, not a tuned industrial BVH.
+- Mechanical gear contact patch currently uses boundary-fan remeshing; a constrained planar triangulation would be stronger.
 - The prototype does not solve deformable dynamics, friction, self-contact, NCP/LCP, IPC, or FEM coupling.
 
 ## Figures and Tables
@@ -66,4 +66,3 @@ Rigid contact detection is often expressed as discrete mesh proximity. This prot
 - Projection refinement ablation table.
 - Runtime breakdown table.
 - Mesh resolution convergence table.
-
