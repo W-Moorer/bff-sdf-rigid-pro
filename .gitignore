@@ -5,3 +5,8 @@
 /BFF_SDF_Rigid_Contact_01_Implementation_and_Validation_Plan.md
 /BFF_SDF_Rigid_Contact_02_Theory_Guide_for_Codex.md
 /BFF_SDF_Rigid_Contact_03_Paper_and_Experiment_Checklist.md
+
+# Local build and package artifacts.
+/build/
+/out/
+/vcpkg_installed/
