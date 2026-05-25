@@ -29,5 +29,7 @@ Benchmarks write summary CSV files under `results/benchmarks/`:
 - `sdf_resolution_study.csv`
 - `mesh_resolution_study.csv`
 - `ablation.csv`
+- `bff_vs_planar_ablation.csv`
 - `validation_report.md`
 
+Real-asset benchmark notes are recorded in `docs/asset_sources.md` and `results/benchmarks/validation_report.md`.

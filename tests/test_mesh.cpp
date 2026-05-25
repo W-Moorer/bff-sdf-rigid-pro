@@ -1,6 +1,9 @@
 #include "test_main.h"
 
 #include "core/Mesh.h"
+#include "io/MeshIO.h"
+
+#include <filesystem>
 
 using bff_sdf::core::Mesh;
 
@@ -46,6 +49,17 @@ Mesh makeClosedCube()
 
 } // namespace
 
+std::filesystem::path findRepoRoot()
+{
+    auto p = std::filesystem::current_path();
+    for (int i = 0; i < 6; ++i) {
+        if (std::filesystem::exists(p / "vcpkg.json")) return p;
+        if (!p.has_parent_path() || p == p.parent_path()) break;
+        p = p.parent_path();
+    }
+    return std::filesystem::current_path();
+}
+
 int main()
 {
     return test::run("test_mesh", [] {
@@ -61,6 +75,13 @@ int main()
         REQUIRE(cube.boundaryLoops().empty());
         REQUIRE(cube.eulerCharacteristic() == 2);
         REQUIRE(cube.normalsFiniteAndUnit());
+
+        Mesh gear;
+        std::string error;
+        const auto stlPath = findRepoRoot() / "data" / "meshes" / "involute_gear_teeth_16_angle_20_cc0.stl";
+        REQUIRE_MSG(bff_sdf::io::readStl(stlPath.string(), gear, &error), error);
+        REQUIRE(gear.V.rows() > 0);
+        REQUIRE(gear.F.rows() > 0);
+        REQUIRE(gear.normalsFiniteAndUnit());
     });
 }
-

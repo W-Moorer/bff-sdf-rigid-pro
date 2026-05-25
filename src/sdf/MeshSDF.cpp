@@ -1,7 +1,9 @@
 #include "sdf/MeshSDF.h"
 
+#include <algorithm>
 #include <cmath>
 #include <limits>
+#include <numeric>
 
 namespace bff_sdf::sdf {
 
@@ -60,6 +62,113 @@ MeshSDF::MeshSDF(const bff_sdf::core::Mesh& mesh, SignMode signMode)
     : mesh_(mesh), signMode_(signMode)
 {
     mesh_.computeNormals();
+    buildBvh();
+}
+
+bff_sdf::core::AABB MeshSDF::faceBounds(int faceId) const
+{
+    bff_sdf::core::AABB box;
+    const Eigen::Vector3i f = mesh_.F.row(faceId);
+    box.expand(mesh_.V.row(f[0]));
+    box.expand(mesh_.V.row(f[1]));
+    box.expand(mesh_.V.row(f[2]));
+    return box;
+}
+
+void MeshSDF::buildBvh()
+{
+    faceOrder_.resize(mesh_.F.rows());
+    std::iota(faceOrder_.begin(), faceOrder_.end(), 0);
+    bvh_.clear();
+    if (!faceOrder_.empty()) buildNode(0, static_cast<int>(faceOrder_.size()));
+}
+
+int MeshSDF::buildNode(int begin, int end)
+{
+    const int nodeId = static_cast<int>(bvh_.size());
+    bvh_.push_back({});
+    BVHNode node;
+    node.begin = begin;
+    node.end = end;
+    for (int i = begin; i < end; ++i) {
+        const auto fb = faceBounds(faceOrder_[i]);
+        node.bounds.expand(fb.min);
+        node.bounds.expand(fb.max);
+    }
+
+    const int count = end - begin;
+    if (count <= 8) {
+        node.leaf = true;
+        bvh_[nodeId] = node;
+        return nodeId;
+    }
+
+    const Eigen::Vector3d extent = node.bounds.extent();
+    int axis = 0;
+    if (extent.y() > extent.x()) axis = 1;
+    if (extent.z() > extent[axis]) axis = 2;
+    const int mid = begin + count / 2;
+    std::nth_element(faceOrder_.begin() + begin, faceOrder_.begin() + mid, faceOrder_.begin() + end,
+                     [&](int lhs, int rhs) {
+                         const auto lb = faceBounds(lhs);
+                         const auto rb = faceBounds(rhs);
+                         return lb.center()[axis] < rb.center()[axis];
+                     });
+
+    node.left = buildNode(begin, mid);
+    node.right = buildNode(mid, end);
+    bvh_[nodeId] = node;
+    return nodeId;
+}
+
+double MeshSDF::aabbDistanceSquared(const bff_sdf::core::AABB& box, const Eigen::Vector3d& p) const
+{
+    double d2 = 0.0;
+    for (int a = 0; a < 3; ++a) {
+        if (p[a] < box.min[a]) {
+            const double d = box.min[a] - p[a];
+            d2 += d * d;
+        } else if (p[a] > box.max[a]) {
+            const double d = p[a] - box.max[a];
+            d2 += d * d;
+        }
+    }
+    return d2;
+}
+
+void MeshSDF::closestInNode(int nodeId,
+                            const Eigen::Vector3d& y,
+                            double& best,
+                            TriangleClosestPoint& bestCp,
+                            int& bestFace) const
+{
+    if (nodeId < 0) return;
+    const BVHNode& node = bvh_[nodeId];
+    if (aabbDistanceSquared(node.bounds, y) > best) return;
+
+    if (node.leaf) {
+        for (int i = node.begin; i < node.end; ++i) {
+            const int faceId = faceOrder_[i];
+            const Eigen::Vector3i f = mesh_.F.row(faceId);
+            const auto cp = closestPointOnTriangle(y, mesh_.V.row(f[0]), mesh_.V.row(f[1]), mesh_.V.row(f[2]));
+            if (cp.squaredDistance < best) {
+                best = cp.squaredDistance;
+                bestCp = cp;
+                bestFace = faceId;
+            }
+        }
+        return;
+    }
+
+    const double dl = node.left >= 0 ? aabbDistanceSquared(bvh_[node.left].bounds, y) : std::numeric_limits<double>::infinity();
+    const double dr = node.right >= 0 ? aabbDistanceSquared(bvh_[node.right].bounds, y) : std::numeric_limits<double>::infinity();
+    if (dl < dr) {
+        closestInNode(node.left, y, best, bestCp, bestFace);
+        closestInNode(node.right, y, best, bestCp, bestFace);
+    } else {
+        closestInNode(node.right, y, best, bestCp, bestFace);
+        closestInNode(node.left, y, best, bestCp, bestFace);
+    }
 }
 
 bool MeshSDF::rayIntersectsTriangle(const Eigen::Vector3d& origin,
@@ -105,15 +214,7 @@ SDFQuery MeshSDF::evalLocal(const Eigen::Vector3d& y, bool needGrad, bool needCl
     double best = std::numeric_limits<double>::infinity();
     TriangleClosestPoint bestCp;
     int bestFace = -1;
-    for (int i = 0; i < mesh_.F.rows(); ++i) {
-        const Eigen::Vector3i f = mesh_.F.row(i);
-        const auto cp = closestPointOnTriangle(y, mesh_.V.row(f[0]), mesh_.V.row(f[1]), mesh_.V.row(f[2]));
-        if (cp.squaredDistance < best) {
-            best = cp.squaredDistance;
-            bestCp = cp;
-            bestFace = i;
-        }
-    }
+    closestInNode(bvh_.empty() ? -1 : 0, y, best, bestCp, bestFace);
 
     const double sign = signedness(y);
     const double dist = std::sqrt(std::max(0.0, best));
@@ -138,4 +239,3 @@ SDFQuery MeshSDF::evalLocal(const Eigen::Vector3d& y, bool needGrad, bool needCl
 }
 
 } // namespace bff_sdf::sdf
-

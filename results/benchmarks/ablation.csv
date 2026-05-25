@@ -3,5 +3,7 @@ projection reduces GridSDF error,no_projection,gap_error,see_sdf_resolution_stud
 projection reduces GridSDF error,with_projection,gap_error,see_sdf_resolution_study,projection row
 SDF reduces expensive projections,no_sdf_projection_count,projection_count,10440,brute-force would project every triangle
 SDF reduces expensive projections,with_sdf_projection_count,projection_count,318,narrow-band sample projection
-chart choice affects UV field,fallback_radial,area_error,0.00061283,BFF adapter interface preserved
+BFF chart vs fallback planar,official_bff,area_error,0.00061283,see_bff_vs_planar_ablation
+BFF chart vs fallback planar,fallback_planar,area_error,0.00061283,see_bff_vs_planar_ablation
+BVH baseline,bvh_exact_triangle_closest_point,area_error,0.00585994,sphere_sphere closed target mesh baseline
 mesh resolution affects area,coarse_to_medium,area_error,see_mesh_resolution_study,computed rows

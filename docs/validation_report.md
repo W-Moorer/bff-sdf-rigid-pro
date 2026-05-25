@@ -143,6 +143,46 @@ BFF status:
 
 Current limitations:
 
-- Bunny and mechanical-part benchmarks use procedural fallback geometry because no tracked input assets are present.
+- The old procedural bunny/mechanical fallback has been superseded by the follow-up real-asset benchmark rows below.
 - Torus-plane is a procedural open patch fallback and is not presented as a disk-like BFF topology validation.
-- Atlas-HO and BVH acceleration remain TODOs.
+- Atlas-HO remains a TODO.
+
+## Follow-Up: BFF Coverage, Real Assets, BVH Baseline
+
+Date: 2026-05-26
+
+Commands:
+
+```powershell
+cmake --build --preset windows-vcpkg-release
+ctest --preset windows-vcpkg-release
+build\Release\run_benchmarks.exe
+powershell -ExecutionPolicy Bypass -File scripts\run_all_tests.ps1
+python scripts\run_rigid_benchmarks.py --config Release
+```
+
+Status:
+
+- Build: passed.
+- Tests: 9/9 passed.
+- One-command test script: passed.
+- One-command benchmark script: passed.
+- BVH-accelerated MeshSDF closest-triangle query: implemented and checked against brute-force exact closest distance in `test_sdf`.
+- STL reader: implemented for binary and ASCII STL, checked on tracked CC0 gear STL in `test_mesh`.
+- Official BFF benchmark coverage:
+  - sphere-plane disk patch: `official-bff`
+  - sphere-sphere source disk patch: `official-bff`
+  - ellipsoid-plane disk patch: `official-bff`
+  - bunny real bottom patch: `official-bff`
+  - torus patch: `fallback-planar` because the patch is not disk-like
+  - mechanical gear patch: `fallback-planar` because official BFF UV validation does not pass on the STL-derived patch
+- New output: `results/benchmarks/bff_vs_planar_ablation.csv`.
+- New tracked real mechanical asset: `data/meshes/involute_gear_teeth_16_angle_20_cc0.stl`.
+
+Representative results:
+
+- Sphere-plane BFF area error: 0.00061283.
+- Sphere-sphere analytic area error: 0.00140366.
+- Sphere-sphere BVH exact-triangle baseline area error: 0.00585994.
+- Bunny real patch: full mesh 28576 faces, extracted contact patch 3529 faces, official BFF chart succeeded.
+- Mechanical gear: full mesh 1336 faces, extracted contact patch 448 faces, planar fallback recorded.

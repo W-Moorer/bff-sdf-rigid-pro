@@ -9,6 +9,7 @@ namespace bff_sdf::io {
 
 bool readObj(const std::string& path, bff_sdf::core::Mesh& mesh, std::string* error = nullptr);
 bool writeObj(const std::string& path, const bff_sdf::core::Mesh& mesh, std::string* error = nullptr);
+bool readStl(const std::string& path, bff_sdf::core::Mesh& mesh, std::string* error = nullptr);
 
 bool readObjWithUV(const std::string& path,
                    bff_sdf::core::Mesh& mesh,
@@ -23,4 +24,3 @@ bool writeObjWithUV(const std::string& path,
                     std::string* error = nullptr);
 
 } // namespace bff_sdf::io
-

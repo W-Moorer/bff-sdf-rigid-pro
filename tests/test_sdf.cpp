@@ -6,6 +6,7 @@
 #include "sdf/GridSDF.h"
 #include "sdf/MeshSDF.h"
 
+#include <limits>
 #include <vector>
 
 using bff_sdf::core::RigidPose;
@@ -74,6 +75,13 @@ int main()
         const Eigen::Vector3d outside(1.4, 0.2, 0.1);
         const double analyticPhi = SphereSDF(Eigen::Vector3d::Zero(), 1.0).evalLocal(outside, false, false).phi;
         REQUIRE(std::abs(meshSphere.evalLocal(outside, true, true).phi - analyticPhi) < 0.02);
+        double bruteBest = std::numeric_limits<double>::infinity();
+        for (int fi = 0; fi < sphereMesh.F.rows(); ++fi) {
+            const Eigen::Vector3i f = sphereMesh.F.row(fi);
+            const auto cp = bff_sdf::sdf::closestPointOnTriangle(outside, sphereMesh.V.row(f[0]), sphereMesh.V.row(f[1]), sphereMesh.V.row(f[2]));
+            bruteBest = std::min(bruteBest, cp.squaredDistance);
+        }
+        REQUIRE_NEAR(std::abs(meshSphere.evalLocal(outside, true, true).phi), std::sqrt(bruteBest), 1e-12);
 
         bff_sdf::core::AABB bounds;
         bounds.expand(Eigen::Vector3d(-1.5, -1.5, -1.5));

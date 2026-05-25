@@ -1,7 +1,10 @@
 #pragma once
 
+#include "core/AABB.h"
 #include "core/Mesh.h"
 #include "sdf/ISDF.h"
+
+#include <vector>
 
 namespace bff_sdf::sdf {
 
@@ -30,6 +33,25 @@ public:
     double signedness(const Eigen::Vector3d& y) const;
 
 private:
+    struct BVHNode {
+        bff_sdf::core::AABB bounds;
+        int left = -1;
+        int right = -1;
+        int begin = 0;
+        int end = 0;
+        bool leaf = false;
+    };
+
+    void buildBvh();
+    int buildNode(int begin, int end);
+    bff_sdf::core::AABB faceBounds(int faceId) const;
+    double aabbDistanceSquared(const bff_sdf::core::AABB& box, const Eigen::Vector3d& p) const;
+    void closestInNode(int nodeId,
+                       const Eigen::Vector3d& y,
+                       double& best,
+                       TriangleClosestPoint& bestCp,
+                       int& bestFace) const;
+
     bool rayIntersectsTriangle(const Eigen::Vector3d& origin,
                                const Eigen::Vector3d& a,
                                const Eigen::Vector3d& b,
@@ -37,7 +59,8 @@ private:
 
     bff_sdf::core::Mesh mesh_;
     SignMode signMode_ = SignMode::RaycastClosedMesh;
+    std::vector<int> faceOrder_;
+    std::vector<BVHNode> bvh_;
 };
 
 } // namespace bff_sdf::sdf
-

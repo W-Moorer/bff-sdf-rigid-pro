@@ -8,7 +8,7 @@
 - OBJ read/write and debug export helpers.
 - RigidPose local/world transforms.
 - Analytic Plane/Sphere/Box SDFs.
-- MeshSDF brute-force closest triangle and closed-mesh ray sign.
+- MeshSDF BVH-accelerated closest triangle and closed-mesh ray sign.
 - GridSDF uniform sampling, trilinear interpolation, central-difference gradient.
 - PatchBuilder disk-like validation.
 - BFFAdapter official command-line integration plus deterministic fallback.
@@ -20,6 +20,10 @@
 - ContactDetector pipeline.
 - Sphere-plane and sphere-sphere demos.
 - Benchmark, resolution study, mesh study, and ablation CSV generation.
+- BVH-accelerated exact triangle closest point inside `MeshSDF`.
+- Real bunny benchmark patch from `bff_official/input/bunny.obj`.
+- Tracked CC0 involute gear STL for mechanical-part benchmark.
+- BFF-vs-planar same-scene ablation table.
 - Documentation: theory, implementation plan, validation report, experiments, paper outline.
 
 ## BFF Status
@@ -31,9 +35,10 @@ If the official binary is absent in another checkout, `BFFAdapter` falls back to
 ## Known Limitations
 
 - Atlas-HO is not implemented.
-- MeshSDF is brute-force, not BVH-accelerated.
+- MeshSDF uses a deterministic in-memory AABB BVH, but it has not been benchmarked against industrial BVH libraries.
 - Vertex-face/edge-edge discrete contact is represented by closest-triangle mesh projection, not a full pair-contact solver.
-- Torus, bunny, and mechanical scenes use procedural fallbacks where tracked assets are unavailable.
+- Torus is non-disk-like and uses planar fallback in the benchmark.
+- Mechanical gear is a real tracked CC0 STL asset, but the extracted STL patch currently falls back to planar because official BFF UV validation does not pass.
 - Seam-crossing logic is counted in the interface but not fully implemented.
 - No deformable dynamics, friction, self-contact, IPC, NCP/LCP, or FEM coupling.
 
@@ -49,8 +54,7 @@ python scripts/run_rigid_benchmarks.py --config Release
 
 ## TODO
 
-- Replace brute-force MeshSDF search with a deterministic BVH.
-- Add real bunny and mechanical-part meshes as tracked test assets or documented external inputs.
+- Improve official BFF robustness for STL-derived mechanical patch charts.
 - Implement seam-crossing continuity checks for multi-chart atlases.
 - Add Atlas-HO projection through PN triangles, MLS, or subdivision surfaces.
 - Add richer visualization scripts for paper figures.

@@ -1,7 +1,12 @@
 #include "io/MeshIO.h"
 
 #include <algorithm>
+#include <array>
+#include <cmath>
+#include <cstdint>
+#include <filesystem>
 #include <fstream>
+#include <map>
 #include <sstream>
 #include <string>
 #include <vector>
@@ -48,6 +53,90 @@ void setError(std::string* error, const std::string& message)
 }
 
 } // namespace
+
+bool readStl(const std::string& path, bff_sdf::core::Mesh& mesh, std::string* error)
+{
+    std::ifstream in(path, std::ios::binary);
+    if (!in) {
+        setError(error, "unable to open STL: " + path);
+        return false;
+    }
+
+    std::array<char, 80> header{};
+    std::uint32_t triCount = 0;
+    in.read(header.data(), static_cast<std::streamsize>(header.size()));
+    in.read(reinterpret_cast<char*>(&triCount), sizeof(std::uint32_t));
+    const auto fileSize = std::filesystem::file_size(path);
+    const bool looksBinary = in && triCount > 0 && fileSize == 84ull + static_cast<std::uintmax_t>(triCount) * 50ull;
+
+    std::vector<Eigen::Vector3d> vertices;
+    std::vector<Eigen::Vector3i> faces;
+    std::map<std::array<long long, 3>, int> welded;
+    constexpr double scale = 1e9;
+
+    auto addVertex = [&](const Eigen::Vector3d& p) {
+        const std::array<long long, 3> key = {
+            static_cast<long long>(std::llround(p.x() * scale)),
+            static_cast<long long>(std::llround(p.y() * scale)),
+            static_cast<long long>(std::llround(p.z() * scale))
+        };
+        auto it = welded.find(key);
+        if (it != welded.end()) return it->second;
+        const int id = static_cast<int>(vertices.size());
+        welded[key] = id;
+        vertices.push_back(p);
+        return id;
+    };
+
+    if (looksBinary) {
+        for (std::uint32_t t = 0; t < triCount; ++t) {
+            float raw[12];
+            std::uint16_t attr = 0;
+            in.read(reinterpret_cast<char*>(raw), sizeof(raw));
+            in.read(reinterpret_cast<char*>(&attr), sizeof(attr));
+            if (!in) {
+                setError(error, "truncated binary STL: " + path);
+                return false;
+            }
+            Eigen::Vector3i f;
+            for (int k = 0; k < 3; ++k) {
+                const Eigen::Vector3d p(raw[3 + 3 * k], raw[4 + 3 * k], raw[5 + 3 * k]);
+                f[k] = addVertex(p);
+            }
+            if (f[0] != f[1] && f[1] != f[2] && f[2] != f[0]) faces.push_back(f);
+        }
+    } else {
+        in.close();
+        std::ifstream text(path);
+        std::string word;
+        std::vector<int> tri;
+        while (text >> word) {
+            if (word == "vertex") {
+                Eigen::Vector3d p;
+                text >> p.x() >> p.y() >> p.z();
+                tri.push_back(addVertex(p));
+                if (tri.size() == 3) {
+                    if (tri[0] != tri[1] && tri[1] != tri[2] && tri[2] != tri[0]) {
+                        faces.emplace_back(tri[0], tri[1], tri[2]);
+                    }
+                    tri.clear();
+                }
+            }
+        }
+    }
+
+    if (vertices.empty() || faces.empty()) {
+        setError(error, "invalid or empty STL: " + path);
+        return false;
+    }
+
+    mesh.V.resize(static_cast<int>(vertices.size()), 3);
+    for (int i = 0; i < static_cast<int>(vertices.size()); ++i) mesh.V.row(i) = vertices[i].transpose();
+    mesh.F.resize(static_cast<int>(faces.size()), 3);
+    for (int i = 0; i < static_cast<int>(faces.size()); ++i) mesh.F.row(i) = faces[i].transpose();
+    mesh.computeNormals();
+    return true;
+}
 
 bool readObjWithUV(const std::string& path,
                    bff_sdf::core::Mesh& mesh,
@@ -159,4 +248,3 @@ bool writeObjWithUV(const std::string& path,
 }
 
 } // namespace bff_sdf::io
-
